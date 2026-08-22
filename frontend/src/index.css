@@ -5,4 +5,12 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
+  background: #f5f6f8;
+  color: #1f2937;
+}
+
+button,
+select,
+input {
+  font: inherit;
 }
