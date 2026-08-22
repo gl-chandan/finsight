@@ -1,5 +1,5 @@
 import pytest
-from app.services.financial_analysis import (
+from backend.app.services.financial_analysis import (
     FinancialAnalysisService
 )
 

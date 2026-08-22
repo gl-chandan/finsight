@@ -1,4 +1,4 @@
-from app.models.company import Company
+'''from app.models.company import Company
 
 from app.models.financial_statement import (
     IncomeStatement,
@@ -70,4 +70,29 @@ growth = FinancialAnalysisService.calculate_growth(
 
 print(
     f"Revenue Growth: {growth:.2f}%"
+) '''
+
+
+from fastapi import FastAPI
+
+from backend.app.api.companies import router as companies_router
+from backend.app.api.analytics import router as analytics_router
+
+
+app = FastAPI(
+    title="FinSight API",
+    description="AI-powered financial due diligence platform",
+    version="0.1.0",
 )
+
+
+app.include_router(companies_router)
+app.include_router(analytics_router)
+
+
+@app.get("/")
+def root():
+    return {
+        "message": "Welcome to FinSight API",
+        "status": "running",
+    }
