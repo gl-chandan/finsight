@@ -3,8 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from backend.app.api.companies import router as companies_router
 from backend.app.api.analytics import router as analytics_router
-
-
+from backend.app.api.financial_analysis import (
+    router as financial_analysis_router
+)
+from backend.app.api.analyst import router as analyst_router
 app = FastAPI(
     title="FinSight API",
     description="AI-powered financial due diligence platform",
@@ -24,8 +26,9 @@ app.add_middleware(
 
 
 app.include_router(companies_router)
+app.include_router(financial_analysis_router)
 app.include_router(analytics_router)
-
+app.include_router(analyst_router)
 
 @app.get("/")
 def root():

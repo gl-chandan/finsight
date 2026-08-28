@@ -5,7 +5,7 @@ import CompanyOverview from "../components/companyoverview";
 import MetricCard from "../components/metriccard";
 import FinancialTable from "../components/financialtable";
 import RiskIndicator from "../components/riskindicator";
-
+import AnalystPanel from "../components/analystpanel";
 import {
   getCompanies,
   getCompanyAnalytics,
@@ -170,26 +170,45 @@ function Dashboard() {
 
             <MetricCard
               title="Operating Margin"
-              value={`${analytics.operating_margin}%`}
+              value={
+                analytics.operating_margin !== null
+                  ? `${analytics.operating_margin}%`
+                  : "N/A"
+              }
             />
 
             <MetricCard
               title="Net Margin"
-              value={`${analytics.net_margin}%`}
+              value={
+                analytics.net_margin !== null
+                  ? `${analytics.net_margin}%`
+                  : "N/A"
+              }
             />
 
             <MetricCard
               title="Debt / Equity"
-              value={analytics.debt_to_equity}
+              value={
+                analytics.debt_to_equity !== null
+                  ? analytics.debt_to_equity
+                  : "N/A"
+              }
             />
 
             <MetricCard
               title="Free Cash Flow"
-              value={analytics.free_cash_flow}
+              value={
+                analytics.free_cash_flow !== null
+                  ? analytics.free_cash_flow
+                  : "N/A"
+              }
             />
 
           </section>
-
+          <AnalystPanel
+            companyId={selectedCompany}
+            fiscalYear={analytics.fiscal_year || 2025}
+          />
 
           {/* Lower section */}
 

@@ -1,3 +1,4 @@
+
 from fastapi import APIRouter, HTTPException
 
 from backend.app.db.connection import get_connection
@@ -15,6 +16,7 @@ def get_company_analytics(company_id: int):
     connection = get_connection()
 
     try:
+
         with connection.cursor() as cursor:
 
             cursor.execute(
@@ -23,6 +25,8 @@ def get_company_analytics(company_id: int):
                     c.id,
                     c.name,
                     c.ticker,
+
+                    fp.fiscal_year,
 
                     i.revenue,
                     i.net_income,
@@ -42,9 +46,9 @@ def get_company_analytics(company_id: int):
                         2
                     ) AS debt_to_equity,
 
-                    cf.operating_cash_flow
-                        - cf.capital_expenditure
-                        AS free_cash_flow
+                    cf.operating_cash_flow,
+
+                    cf.capital_expenditure
 
                 FROM companies c
 
@@ -60,7 +64,11 @@ def get_company_analytics(company_id: int):
                 JOIN cash_flow_statements cf
                     ON fp.id = cf.financial_period_id
 
-                WHERE c.id = %s;
+                WHERE c.id = %s
+
+                ORDER BY fp.fiscal_year DESC
+
+                LIMIT 1;
                 """,
                 (company_id,),
             )
@@ -68,22 +76,83 @@ def get_company_analytics(company_id: int):
             row = cursor.fetchone()
 
             if row is None:
+
                 raise HTTPException(
                     status_code=404,
                     detail="Financial data not found",
                 )
 
+            # --------------------------------------------------
+            # Safely calculate Free Cash Flow
+            # --------------------------------------------------
+
+            operating_cash_flow = row[9]
+            capital_expenditure = row[10]
+
+            free_cash_flow = None
+
+            if (
+                operating_cash_flow is not None
+                and capital_expenditure is not None
+            ):
+
+                free_cash_flow = (
+                    operating_cash_flow
+                    - capital_expenditure
+                )
+
+            # --------------------------------------------------
+            # Build response
+            # --------------------------------------------------
+
             return {
+
                 "company_id": row[0],
+
                 "company_name": row[1],
+
                 "ticker": row[2],
-                "revenue": float(row[3]),
-                "net_income": float(row[4]),
-                "operating_margin": float(row[5]),
-                "net_margin": float(row[6]),
-                "debt_to_equity": float(row[7]),
-                "free_cash_flow": float(row[8]),
+
+                "fiscal_year": row[3],
+
+                "revenue": (
+                    float(row[4])
+                    if row[4] is not None
+                    else None
+                ),
+
+                "net_income": (
+                    float(row[5])
+                    if row[5] is not None
+                    else None
+                ),
+
+                "operating_margin": (
+                    float(row[6])
+                    if row[6] is not None
+                    else None
+                ),
+
+                "net_margin": (
+                    float(row[7])
+                    if row[7] is not None
+                    else None
+                ),
+
+                "debt_to_equity": (
+                    float(row[8])
+                    if row[8] is not None
+                    else None
+                ),
+
+                "free_cash_flow": (
+                    float(free_cash_flow)
+                    if free_cash_flow is not None
+                    else None
+                ),
             }
 
     finally:
+
         connection.close()
+

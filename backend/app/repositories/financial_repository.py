@@ -4,6 +4,10 @@ from backend.app.ingestion.financial_loader import FinancialRecord
 
 class FinancialRepository:
 
+    # ==========================================================
+    # SAVE FINANCIAL RECORD
+    # ==========================================================
+
     def save_financial_record(
         self,
         record: FinancialRecord
@@ -157,6 +161,82 @@ class FinancialRepository:
             connection.rollback()
 
             raise
+
+        finally:
+
+            cursor.close()
+            connection.close()
+
+
+    # ==========================================================
+    # GET FINANCIAL RECORD
+    # ==========================================================
+
+    def get_financial_record(
+        self,
+        company_id: int,
+        fiscal_year: int
+    ):
+
+        connection = get_connection()
+
+        try:
+
+            cursor = connection.cursor()
+
+            cursor.execute(
+                """
+                SELECT
+                    fp.company_id,
+                    fp.fiscal_year,
+
+                    i.revenue,
+                    i.net_income,
+
+                    b.total_assets,
+                    b.total_liabilities,
+                    b.equity,
+                    b.cash,
+
+                    c.operating_cash_flow
+
+                FROM financial_periods fp
+
+                LEFT JOIN income_statements i
+                    ON i.financial_period_id = fp.id
+
+                LEFT JOIN balance_sheets b
+                    ON b.financial_period_id = fp.id
+
+                LEFT JOIN cash_flow_statements c
+                    ON c.financial_period_id = fp.id
+
+                WHERE fp.company_id = %s
+                  AND fp.fiscal_year = %s
+                  AND fp.period_type = 'FY'
+                """,
+                (
+                    company_id,
+                    fiscal_year
+                )
+            )
+
+            row = cursor.fetchone()
+
+            if row is None:
+                return None
+
+            return FinancialRecord(
+                company_id=row[0],
+                fiscal_year=row[1],
+                revenue=row[2],
+                net_income=row[3],
+                assets=row[4],
+                liabilities=row[5],
+                equity=row[6],
+                cash=row[7],
+                operating_cash_flow=row[8]
+            )
 
         finally:
 
